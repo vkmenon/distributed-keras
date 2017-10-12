@@ -165,7 +165,7 @@ def main(_):
                     feed_dict={model.inputs[0]: data, targets: labels}
                     loss_value, step_value = sess.run([train_op, global_step], feed_dict=feed_dict)
                     step += 1
-                    print("Step:%d, Loss:%d" % (step,loss_value))
+                    print("Step:%d, Loss:%.3f" % (step,loss_value))
                     
             # Ask for all the services to stop.
             sv.stop()
