@@ -12,7 +12,7 @@ Script must be run on each node (and each node must have all the required packag
 
 Example Usage:
 
-	On Node 1 (Parameter Server): 
+    On Node 1 (Parameter Server): 
     $ python keras_distributed.py --ps_hosts="hostname1:port" --worker_hosts="hostname1:port,hostname2:port" --job_name="ps" --task_index=0
 
     On Node 1 (Worker):
@@ -45,7 +45,6 @@ STEPS = 1000000
 
 # Function to load data
 def get_train_batch(batch_size,i):
-    
     # implement random selection of data 
 
     # return appropriate numbers of inputs and corresponding labels
@@ -53,6 +52,15 @@ def get_train_batch(batch_size,i):
     labels
 
     return (data,labels)
+
+def get_model(path):
+    json_file = open('PATH/TO/MODEL', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model = model_from_json(loaded_model_json)
+
+    return model
+
 
 def main(_):
     ps_hosts = FLAGS.ps_hosts.split(",")
@@ -80,11 +88,8 @@ def main(_):
             # do not initialize variables on the fly
             keras.backend.manual_variable_initialization(True)
 
-            # load the Keras model 
-            json_file = open('PATH/TO/MODEL/model.json', 'r')
-            loaded_model_json = json_file.read()
-            json_file.close()
-            model = model_from_json(loaded_model_json)
+            # load the Keras model (JSON format)
+            model = get_model("PATH/TO/MODEL"))
 
             # Tensor that holds the keras model predictions
             preds = model.output
@@ -100,6 +105,7 @@ def main(_):
             # we create a global_step tensor for distributed training
             # (a counter of iterations)
             global_step = tf.Variable(0, name='global_step', trainable=False)
+            increment_global_step_op = tf.assign(global_step, global_step+1)
 
             # apply regularizers if any
             if model.losses:
@@ -164,9 +170,14 @@ def main(_):
                     data, labels = get_train_batch(32,count)
                     feed_dict={model.inputs[0]: data, targets: labels}
                     loss_value, step_value = sess.run([train_op, global_step], feed_dict=feed_dict)
-                    step += 1
-                    print("Step:%d, Loss:%.3f" % (step,loss_value))
                     
+                    sess.run(increment_global_step_op)
+
+                    step += 1
+                    print("Step:%d, Loss:%d" % (step,loss_value))
+
+                    #TODO : Check performance on Validation set after X steps or after each epoch
+
             # Ask for all the services to stop.
             sv.stop()
 
