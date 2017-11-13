@@ -25,10 +25,9 @@ Example Usage:
 
 import tensorflow as tf
 import numpy as np
-import keras #or import tf.keras or tf.contrib.keras.api.keras
+from tensorflow import keras 
+#import keras - if not using tf-keras
 from keras.models import model_from_json
-# from tf.keras.models import model_from_json - an option if keras is not installed (TF1.4+)
-# from from tensorflow.contrib.keras.api.keras.models import model_from_json (TF1.2+)
 
 # Flags for defining the tf.train.ClusterSpec
 tf.app.flags.DEFINE_string("ps_hosts", "",
